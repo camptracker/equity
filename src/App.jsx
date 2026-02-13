@@ -58,9 +58,69 @@ const DEFAULTS = {
   fmv: 23.71,
 }
 
+function TaxInfoModal({ onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:16, padding:'24px 28px', maxWidth:560, width:'100%', maxHeight:'80vh', overflowY:'auto', border:'1px solid var(--border)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+          <div style={{ fontSize:18, fontWeight:700 }}>📐 How Tax Is Calculated</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'var(--text-dim)', fontSize:20, cursor:'pointer' }}>✕</button>
+        </div>
+
+        <div style={{ fontSize:13, lineHeight:1.7, color:'var(--text-dim)' }}>
+          <div style={{ fontWeight:600, color:'var(--text)', fontSize:14, marginBottom:8 }}>🔶 Options (Unexercised — 46,040 shares)</div>
+          <p><b>Value</b> = (Share Price − Strike Price of $3.967) × 46,040</p>
+          <p><b>Short-term scenario</b> (exercise & sell same day):</p>
+          <ul style={{ paddingLeft:20, margin:'4px 0 12px' }}>
+            <li>Taxed as ordinary income</li>
+            <li>Federal: 37% (top marginal bracket)</li>
+            <li>California: 13.3% (top state bracket)</li>
+            <li>FICA/Medicare: 2.35% (Additional Medicare Tax)</li>
+            <li><b>Total: 52.65%</b></li>
+          </ul>
+          <p><b>Long-term scenario</b> (hold &gt;1 year after exercise):</p>
+          <ul style={{ paddingLeft:20, margin:'4px 0 12px' }}>
+            <li>Taxed as long-term capital gains</li>
+            <li>Federal: 20% (top LTCG rate)</li>
+            <li>California: 13.3% (CA taxes capital gains as ordinary income)</li>
+            <li>NIIT: 3.8% (Net Investment Income Tax)</li>
+            <li><b>Total: 37.1%</b></li>
+          </ul>
+
+          <div style={{ fontWeight:600, color:'var(--text)', fontSize:14, marginBottom:8, marginTop:16 }}>🟣 Common Stock (Exercised — 24,770 shares)</div>
+          <p><b>Value</b> = Share Price × 24,770</p>
+          <p>Already exercised and held &gt;1 year → Long-term capital gains:</p>
+          <ul style={{ paddingLeft:20, margin:'4px 0 12px' }}>
+            <li>Federal: 20% + California: 13.3% + NIIT: 3.8%</li>
+            <li><b>Total: 37.1%</b></li>
+          </ul>
+          <p style={{ fontSize:12, color:'var(--text-dim)' }}>Note: Tax is on gain above your cost basis. This calculator assumes full value is taxable for simplicity.</p>
+
+          <div style={{ fontWeight:600, color:'var(--text)', fontSize:14, marginBottom:8, marginTop:16 }}>🟠 RSUs (20,200 shares)</div>
+          <p><b>Value</b> = Share Price × 20,200</p>
+          <p>RSUs are taxed as ordinary income upon vesting:</p>
+          <ul style={{ paddingLeft:20, margin:'4px 0 12px' }}>
+            <li>Federal: 37% + California: 13.3% + FICA/Medicare: 2.35%</li>
+            <li><b>Total: 52.65%</b></li>
+          </ul>
+
+          <div style={{ fontWeight:600, color:'var(--text)', fontSize:14, marginBottom:8, marginTop:16 }}>⚠️ Important Notes</div>
+          <ul style={{ paddingLeft:20, margin:'4px 0' }}>
+            <li>Rates use 2026 top marginal brackets (CA doesn't have preferential LTCG rates)</li>
+            <li>Actual tax depends on total income, deductions, and AMT exposure</li>
+            <li>Options may trigger AMT (Alternative Minimum Tax) if exercised but not sold</li>
+            <li>These are estimates — consult a CPA for your specific situation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Calculator() {
   const [price, setPrice] = useState(DEFAULTS.fmv)
   const [d, setD] = useState(DEFAULTS)
+  const [showInfo, setShowInfo] = useState(false)
 
   const optGross = Math.max(0, price - d.strike) * d.options
   const comGross = price * d.common
@@ -135,7 +195,14 @@ function Calculator() {
       <div style={{ height:12 }} />
 
       {/* Tax */}
+      {showInfo && <TaxInfoModal onClose={() => setShowInfo(false)} />}
+      <div style={{ position:'relative' }}>
       <Section title="Tax Summary (California 2026)" icon="🏛️">
+        <button onClick={() => setShowInfo(true)} style={{
+          position:'absolute', top:14, right:16, background:'var(--border)', border:'none',
+          borderRadius:'50%', width:26, height:26, fontSize:14, cursor:'pointer', color:'var(--text)',
+          display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700
+        }}>ⓘ</button>
         <TaxRow label="Options / RSUs (short-term)" rates={TAX.shortTerm} />
         <TaxRow label="Common / Options held >1yr (LTCG)" rates={TAX.longTerm} />
         <div style={{ borderTop:'1px solid var(--border)', marginTop:12, paddingTop:12 }}>
@@ -166,6 +233,7 @@ function Calculator() {
           </div>
         </div>
       </Section>
+      </div>
 
       <div style={{ textAlign:'center', fontSize:11, color:'var(--text-dim)', marginTop:16, opacity:0.5 }}>
         Estimates only. Consult a tax professional.
