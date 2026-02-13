@@ -276,20 +276,20 @@ function DynamicAdvice({ price, optGross, comGross, rsuGross, totalGross, totalT
     }
 
     if (price < 25) return {
-      emoji: '🟡', label: 'HOLD & WAIT', color: 'var(--orange)',
-      summary: `Near current FMV. Paper value of ${fmt(totalGross)} but pre-IPO = illiquid.`,
+      emoji: '🟡', label: 'CONSERVATIVE START', color: 'var(--orange)',
+      summary: `Near current FMV. Total: ${fmt(totalGross)} gross → ~${fmt(netTotal)} net. Start selling selectively.`,
       liquidate: [
-        { action: 'Options (46,040)', advice: 'Do NOT exercise. NSOs = 52.65% tax at exercise on illiquid stock. Wait for liquidity event.' },
-        { action: 'Common (24,770)', advice: `Worth ${fmt(comGross)}. Hold — best tax rate (LTCG 37.1%) and no liquidity anyway.` },
-        { action: 'RSUs (20,200)', advice: `Worth ${fmt(rsuGross)} gross → ${fmt(rsuGross*(1-stRate))} net. Sell as they vest, bank the cash.` },
+        { action: 'RSUs (20,200) — Sell 100%', advice: `Sell as they vest. No tax advantage to holding. Net: ${fmt(rsuGross*(1-stRate))}` },
+        { action: 'Options — Sell 20%', advice: `Cashless exercise ${(46040*0.2).toLocaleString()} options to start diversifying. Net: ~${fmt(optGross*0.2*(1-stRate))}. Hold 80% for upside.` },
+        { action: 'Common — Hold', advice: `Worth ${fmt(comGross)} at LTCG (37.1%). Best tax asset — save for a big move (house). No rush to sell.` },
       ],
       money: [
-        { dest: 'HYSA (savings)', amount: '$200K', why: 'Keep liquid. This IS your safety net while equity is locked up.' },
-        { dest: 'Max retirement accounts', amount: '$30K/yr', why: '401K ($23K) + Roth ($7K). Tax-free compounding.' },
-        { dest: 'RSU after-tax cash', amount: fmt(rsuGross*(1-stRate)), why: 'Index funds (VTI/VXUS). Start diversifying away from single-stock risk.' },
-        { dest: 'Rent fund', amount: '$84K/yr', why: 'At this price, buying a house is premature. Keep renting.' },
+        { dest: '🏦 Max retirement accounts', amount: '$30K/yr', why: '401K ($23K) + Roth ($7K). Best risk-free move at any price.' },
+        { dest: '📈 Index funds (VTI/VXUS)', amount: fmt(rsuGross*(1-stRate) + optGross*0.2*(1-stRate)), why: 'RSU + partial options cash → diversify away from single-stock concentration.' },
+        { dest: '💰 HYSA (savings)', amount: '$200K', why: 'Keep your cash buffer intact. Still your safety net.' },
+        { dest: '🏠 House fund (building)', amount: 'Start saving', why: 'At $7K/month rent, start earmarking for a down payment. Not yet enough for a big move.' },
       ],
-      risk: 'Pre-IPO = paper money. Could be years before you can sell. Live on salary, not equity.'
+      risk: 'Stock could go lower — selling some now locks in gains. But don\'t over-sell at the floor. Keep 70-80% for upside if you believe in the company.'
     }
 
     if (price < 50) return {
