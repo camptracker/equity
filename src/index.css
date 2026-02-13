@@ -1,0 +1,26 @@
+:root {
+  --bg: #0a0a0f;
+  --surface: #14141f;
+  --surface2: #1c1c2e;
+  --border: #2a2a3e;
+  --text: #e4e4ef;
+  --text-dim: #8888a0;
+  --green: #00e676;
+  --green-dim: #00e67633;
+  --blue: #448aff;
+  --orange: #ff9100;
+  --red: #ff5252;
+  --purple: #b388ff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { min-height: 100vh; }
