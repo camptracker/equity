@@ -51,6 +51,9 @@ const TAX = {
 }
 const totalRate = (t) => t.federal + t.state + t.fica + t.niit
 
+// $7.23B valuation at $26.528/share → ~272,574,879 shares outstanding
+const SHARES_OUTSTANDING = 7_230_000_000 / 26.528
+
 const DEFAULTS = {
   options: 46040, strike: 3.967,
   common: 24770,
@@ -170,6 +173,9 @@ function Calculator() {
         <div style={{ fontSize:56, fontWeight:800, color:'var(--green)', lineHeight:1.1, marginTop:4 }}>{fmtFull(totalGross)}</div>
         <div style={{ fontSize:14, color:'var(--text-dim)', marginTop:4 }}>
           at <b style={{ color:'var(--text)' }}>${price.toFixed(2)}</b>/share
+        </div>
+        <div style={{ fontSize:13, color:'var(--text-dim)', marginTop:4 }}>
+          Company Valuation: <b style={{ color:'var(--text)' }}>${(price * SHARES_OUTSTANDING / 1e9).toFixed(2)}B</b>
         </div>
       </div>
 
