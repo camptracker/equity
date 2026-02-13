@@ -182,12 +182,12 @@ function Calculator() {
       {/* Slider */}
       <div style={{ margin:'16px 0 24px', padding:'0 4px' }}>
         <input
-          type="range" min="0" max="200" step="0.5" value={price}
+          type="range" min="0" max="1000" step="1" value={price}
           onChange={e => setPrice(+e.target.value)}
           style={{ width:'100%', height:8, accentColor:'var(--green)', cursor:'pointer' }}
         />
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'var(--text-dim)' }}>
-          <span>$0</span><span>$50</span><span>$100</span><span>$150</span><span>$200</span>
+          <span>$0</span><span>$250</span><span>$500</span><span>$750</span><span>$1000</span>
         </div>
       </div>
 
