@@ -42,11 +42,7 @@ function PasswordGate({ onUnlock }) {
 }
 
 const fmt = (n) => n.toLocaleString('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0 })
-const fmtK = (n) => {
-  if (Math.abs(n) >= 1e6) return `$${(n/1e6).toFixed(1)}M`
-  if (Math.abs(n) >= 1e3) return `$${(n/1e3).toFixed(0)}K`
-  return fmt(n)
-}
+const fmtFull = (n) => n.toLocaleString('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0 })
 
 // Tax rates (California 2026 top marginal)
 const TAX = {
@@ -111,7 +107,7 @@ function Calculator() {
       {/* Header */}
       <div style={{ textAlign:'center', marginBottom:8 }}>
         <div style={{ fontSize:13, color:'var(--text-dim)', fontWeight:500, letterSpacing:2, textTransform:'uppercase' }}>Total Package Value</div>
-        <div style={{ fontSize:56, fontWeight:800, color:'var(--green)', lineHeight:1.1, marginTop:4 }}>{fmtK(totalGross)}</div>
+        <div style={{ fontSize:56, fontWeight:800, color:'var(--green)', lineHeight:1.1, marginTop:4 }}>{fmtFull(totalGross)}</div>
         <div style={{ fontSize:14, color:'var(--text-dim)', marginTop:4 }}>
           at <b style={{ color:'var(--text)' }}>${price.toFixed(2)}</b>/share
         </div>
