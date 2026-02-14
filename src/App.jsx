@@ -391,6 +391,56 @@ function DynamicAdvice({ price, optGross, comGross, rsuGross, totalGross, totalT
         </div>
       ))}
 
+      {/* Sell Summary */}
+      {(() => {
+        const d = DEFAULTS
+        const stRate2 = 0.5265, ltRate2 = 0.371
+        let sellShares = 0, sellNet = 0
+        const tier = price < 5 ? 'underwater' : price < 25 ? 'conservative' : price < 50 ? 'tranches' : price < 100 ? 'major' : 'generational'
+        if (tier === 'conservative') {
+          const rsuNet = (d.rsus * price) * (1 - stRate2)
+          const optPct = 0.2, optShares = Math.round(d.options * optPct)
+          const optNet = (optShares * (price - d.strike)) * (1 - stRate2)
+          sellShares = d.rsus + optShares; sellNet = rsuNet + optNet
+        } else if (tier === 'tranches') {
+          const rsuNet = (d.rsus * price) * (1 - stRate2)
+          const optPct = 0.4, optShares = Math.round(d.options * optPct)
+          const optNet = (optShares * (price - d.strike)) * (1 - stRate2)
+          const comPct = 0.3, comShares = Math.round(d.common * comPct)
+          const comNet = (comShares * price) * (1 - ltRate2)
+          sellShares = d.rsus + optShares + comShares; sellNet = rsuNet + optNet + comNet
+        } else if (tier === 'major') {
+          const rsuNet = (d.rsus * price) * (1 - stRate2)
+          const optPct = 0.7, optShares = Math.round(d.options * optPct)
+          const optNet = (optShares * (price - d.strike)) * (1 - stRate2)
+          const comPct = 0.5, comShares = Math.round(d.common * comPct)
+          const comNet = (comShares * price) * (1 - ltRate2)
+          sellShares = d.rsus + optShares + comShares; sellNet = rsuNet + optNet + comNet
+        } else if (tier === 'generational') {
+          const rsuNet = (d.rsus * price) * (1 - stRate2)
+          const optPct = 0.9, optShares = Math.round(d.options * optPct)
+          const optNet = (optShares * (price - d.strike)) * (1 - stRate2)
+          const comPct = 0.7, comShares = Math.round(d.common * comPct)
+          const comNet = (comShares * price) * (1 - ltRate2)
+          sellShares = d.rsus + optShares + comShares; sellNet = rsuNet + optNet + comNet
+        }
+        if (tier === 'underwater') return null
+        return (
+          <div style={{ margin:'12px 0', padding:'12px 16px', background:'rgba(0,230,118,0.08)', borderRadius:12, border:'1px solid rgba(0,230,118,0.2)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:700, color:'var(--green)' }}>📊 Total Recommended Sell</div>
+                <div style={{ fontSize:12, color:'var(--text-dim)', marginTop:2 }}>{sellShares.toLocaleString()} shares</div>
+              </div>
+              <div style={{ textAlign:'right' }}>
+                <div style={{ fontSize:18, fontWeight:700, color:'var(--green)' }}>{fmt(sellNet)}</div>
+                <div style={{ fontSize:11, color:'var(--text-dim)' }}>est. net after tax</div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Where to put money */}
       <div style={{ fontSize:13, fontWeight:700, marginTop:14, marginBottom:8 }}>💵 Where to Put the Money</div>
       {advice.money.map((m, i) => (
