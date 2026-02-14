@@ -181,11 +181,23 @@ function Calculator() {
 
       {/* Slider */}
       <div style={{ margin:'16px 0 24px', padding:'0 4px' }}>
-        <input
-          type="range" min="0" max="1000" step="1" value={price}
-          onChange={e => setPrice(+e.target.value)}
-          style={{ width:'100%', height:8, accentColor:'var(--green)', cursor:'pointer' }}
-        />
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+          <button onClick={() => setPrice(p => Math.max(0, +(p - 1).toFixed(2)))} style={{
+            background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8,
+            color:'var(--text)', width:36, height:36, fontSize:18, fontWeight:700, cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'
+          }}>−</button>
+          <input
+            type="range" min="0" max="1000" step="1" value={price}
+            onChange={e => setPrice(+e.target.value)}
+            style={{ flex:1, height:8, accentColor:'var(--green)', cursor:'pointer' }}
+          />
+          <button onClick={() => setPrice(p => Math.min(1000, +(p + 1).toFixed(2)))} style={{
+            background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8,
+            color:'var(--text)', width:36, height:36, fontSize:18, fontWeight:700, cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter, sans-serif'
+          }}>+</button>
+        </div>
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'var(--text-dim)' }}>
           <span>$0</span><span>$250</span><span>$500</span><span>$750</span><span>$1000</span>
         </div>
