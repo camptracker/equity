@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react'
-import PriceChart from './components/PriceChart'
 
 const PASSWORD = 'oreo'
 
@@ -203,9 +202,6 @@ function Calculator() {
           <span>$0</span><span>$250</span><span>$500</span><span>$750</span><span>$1000</span>
         </div>
       </div>
-
-      {/* Price Chart */}
-      <PriceChart />
 
       {/* Breakdown */}
       <Section title="Equity Breakdown" icon="📊">
