@@ -120,48 +120,171 @@ function TaxInfoModal({ onClose }) {
   )
 }
 
+function LTCGInfoModal({ onClose, savings }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:16, padding:'24px 28px', maxWidth:560, width:'100%', maxHeight:'80vh', overflowY:'auto', border:'1px solid var(--border)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+          <div style={{ fontSize:18, fontWeight:700 }}>📈 LTCG Tax Strategy</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'var(--text-dim)', fontSize:20, cursor:'pointer' }}>✕</button>
+        </div>
+        <div style={{ fontSize:13, lineHeight:1.7, color:'var(--text-dim)' }}>
+          <p><b style={{ color:'var(--text)' }}>What is LTCG?</b></p>
+          <p>Long-Term Capital Gains (LTCG) applies to assets held &gt;1 year. It's taxed at a lower rate than short-term/ordinary income.</p>
+
+          <div style={{ margin:'12px 0', padding:'12px 16px', background:'rgba(255,255,255,0.03)', borderRadius:10, border:'1px solid var(--border)' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+              <span><b>Short-Term Rate:</b></span><span><b style={{ color:'var(--red)' }}>52.65%</b></span>
+            </div>
+            <div style={{ fontSize:12, marginBottom:8 }}>Fed 37% + CA 13.3% + FICA 2.35%</div>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+              <span><b>Long-Term Rate:</b></span><span><b style={{ color:'var(--green)' }}>37.1%</b></span>
+            </div>
+            <div style={{ fontSize:12 }}>Fed 20% + CA 13.3% + NIIT 3.8%</div>
+          </div>
+
+          <p><b style={{ color:'var(--text)' }}>Tax Savings = 15.55% of converted amount</b></p>
+          <p>Every dollar you convert from short-term to long-term saves you 15.55¢ in taxes.</p>
+
+          <div style={{ margin:'12px 0', padding:'12px 16px', background:'rgba(0,230,118,0.08)', borderRadius:10, border:'1px solid rgba(0,230,118,0.2)' }}>
+            <div style={{ fontSize:14, fontWeight:700, color:'var(--green)' }}>
+              💰 Current savings from LTCG: {fmt(savings)}
+            </div>
+            <div style={{ fontSize:12, marginTop:4 }}>Based on your current slider positions</div>
+          </div>
+
+          <p style={{ marginTop:12 }}><b style={{ color:'var(--orange)' }}>⚠️ Caveat:</b> Exercising options early to get LTCG requires cash upfront to pay the strike price and the tax on the spread at exercise. You also bear the risk that the stock could drop during the holding period, meaning you'd have paid taxes on gains you never realized.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SliderTooltip({ text, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'var(--surface)', borderRadius:16, padding:'20px 24px', maxWidth:440, width:'100%', border:'1px solid var(--border)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          <div style={{ fontSize:16, fontWeight:700 }}>ⓘ Info</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'var(--text-dim)', fontSize:20, cursor:'pointer' }}>✕</button>
+        </div>
+        <div style={{ fontSize:13, lineHeight:1.7, color:'var(--text-dim)' }}>{text}</div>
+      </div>
+    </div>
+  )
+}
+
 function Calculator() {
   const [price, setPrice] = useState(DEFAULTS.fmv)
-  const [d, setD] = useState(DEFAULTS)
+  const [d] = useState(DEFAULTS)
   const [showInfo, setShowInfo] = useState(false)
+  const [showLtcgInfo, setShowLtcgInfo] = useState(false)
+  const [sliderTooltip, setSliderTooltip] = useState(null)
 
-  const optGross = Math.max(0, price - d.strike) * d.options
-  const comGross = price * d.common
-  const rsuGross = price * d.rsus
+  // LTCG sliders
+  const [ltcgOptions, setLtcgOptions] = useState(0)
+  const [ltcgCommon, setLtcgCommon] = useState(d.common)
+  const [ltcgRSUs, setLtcgRSUs] = useState(0)
+
+  const stRate = totalRate(TAX.shortTerm)
+  const ltRate = totalRate(TAX.longTerm)
+
+  // Options
+  const optGain = Math.max(0, price - d.strike)
+  const optGrossLT = optGain * ltcgOptions
+  const optGrossST = optGain * (d.options - ltcgOptions)
+  const optGross = optGrossLT + optGrossST
+  const optTaxLT = optGrossLT * ltRate
+  const optTaxST = optGrossST * stRate
+  const optTax = optTaxLT + optTaxST
+
+  // Common
+  const comGrossLT = price * ltcgCommon
+  const comGrossST = price * (d.common - ltcgCommon)
+  const comGross = comGrossLT + comGrossST
+  const comTaxLT = comGrossLT * ltRate
+  const comTaxST = comGrossST * stRate
+  const comTax = comTaxLT + comTaxST
+
+  // RSUs
+  const rsuGrossLT = price * ltcgRSUs
+  const rsuGrossST = price * (d.rsus - ltcgRSUs)
+  const rsuGross = rsuGrossLT + rsuGrossST
+  const rsuTaxLT = rsuGrossLT * ltRate
+  const rsuTaxST = rsuGrossST * stRate
+  const rsuTax = rsuTaxLT + rsuTaxST
+
   const totalGross = optGross + comGross + rsuGross
+  const totalTax = optTax + comTax + rsuTax
 
-  const optTaxST = optGross * totalRate(TAX.shortTerm)
-  const optTaxLT = optGross * totalRate(TAX.longTerm)
-  const comTax = comGross * totalRate(TAX.longTerm)
-  const rsuTax = rsuGross * totalRate(TAX.shortTerm)
+  // Savings: what tax would be if all currently-LTCG shares were instead short-term
+  const ltcgSavings = (optGrossLT + comGrossLT + rsuGrossLT) * (stRate - ltRate)
 
-  const totalTaxST = optTaxST + comTax + rsuTax
-  const totalTaxLT = optTaxLT + comTax + rsuTax
-
-  const Section = ({ title, icon, children }) => (
+  const Section = ({ title, icon, children, extra }) => (
     <div style={{ background:'var(--surface)', borderRadius:16, padding:'16px 20px', border:'1px solid var(--border)' }}>
-      <div style={{ fontSize:13, fontWeight:600, color:'var(--text-dim)', marginBottom:10, textTransform:'uppercase', letterSpacing:1 }}>
-        {icon} {title}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:'var(--text-dim)', textTransform:'uppercase', letterSpacing:1 }}>
+          {icon} {title}
+        </div>
+        {extra}
       </div>
       {children}
     </div>
   )
 
-  const Row = ({ label, gross, tax, color }) => (
-    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--border)' }}>
-      <span style={{ fontSize:14, color:'var(--text-dim)' }}>{label}</span>
-      <div style={{ textAlign:'right' }}>
-        <span style={{ fontSize:16, fontWeight:600, color }}>{fmt(gross)}</span>
-        <span style={{ fontSize:12, color:'var(--text-dim)', marginLeft:8 }}>tax: {fmt(tax)}</span>
-        <span style={{ fontSize:12, color:'var(--green)', marginLeft:8 }}>net: {fmt(gross - tax)}</span>
+  const BreakdownRow = ({ label, grossLT, grossST, taxLT, taxST, color }) => {
+    const gross = grossLT + grossST
+    const tax = taxLT + taxST
+    return (
+      <div style={{ padding:'8px 0', borderBottom:'1px solid var(--border)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:14, color:'var(--text-dim)' }}>{label}</span>
+          <span style={{ fontSize:16, fontWeight:600, color }}>{fmt(gross)}</span>
+        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'var(--text-dim)', marginTop:2 }}>
+          <span>
+            {grossLT > 0 && <span style={{ color:'var(--green)' }}>LTCG: {fmt(grossLT)} @ 37.1%</span>}
+            {grossLT > 0 && grossST > 0 && ' · '}
+            {grossST > 0 && <span style={{ color:'var(--red)' }}>ST: {fmt(grossST)} @ 52.65%</span>}
+          </span>
+          <span>tax: {fmt(tax)} · <span style={{ color:'var(--green)' }}>net: {fmt(gross - tax)}</span></span>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const TaxRow = ({ label, rates }) => (
     <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', fontSize:13 }}>
       <span style={{ color:'var(--text-dim)' }}>{label}</span>
       <span>Fed {(rates.federal*100).toFixed(0)}% + CA {(rates.state*100).toFixed(1)}% + {rates.fica > 0 ? `FICA ${(rates.fica*100).toFixed(1)}%` : `NIIT ${(rates.niit*100).toFixed(1)}%`} = <b>{(totalRate(rates)*100).toFixed(1)}%</b></span>
+    </div>
+  )
+
+  const infoBtn = (onClick) => (
+    <button onClick={onClick} style={{
+      background:'var(--border)', border:'none', borderRadius:'50%', width:22, height:22,
+      fontSize:12, cursor:'pointer', color:'var(--text)', display:'inline-flex',
+      alignItems:'center', justifyContent:'center', fontWeight:700, marginLeft:8, flexShrink:0
+    }}>ⓘ</button>
+  )
+
+  const LtcgSlider = ({ label, value, setValue, max, info }) => (
+    <div style={{ marginBottom:14 }}>
+      <div style={{ display:'flex', alignItems:'center', marginBottom:6 }}>
+        <span style={{ fontSize:13, color:'var(--text-dim)', flex:1 }}>{label}</span>
+        {infoBtn(() => setSliderTooltip(info))}
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <input
+          type="range" min="0" max={max} step="10" value={value}
+          onChange={e => setValue(+e.target.value)}
+          style={{ flex:1, height:6, accentColor:'var(--green)', cursor:'pointer' }}
+        />
+        <span style={{ fontSize:13, fontWeight:600, minWidth:120, textAlign:'right' }}>
+          <span style={{ color:'var(--green)' }}>{value.toLocaleString()}</span>
+          <span style={{ color:'var(--text-dim)' }}> / {max.toLocaleString()}</span>
+        </span>
+      </div>
     </div>
   )
 
@@ -179,7 +302,7 @@ function Calculator() {
         </div>
       </div>
 
-      {/* Slider */}
+      {/* Price Slider */}
       <div style={{ margin:'16px 0 24px', padding:'0 4px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
           <button onClick={() => setPrice(p => Math.max(0, +(p - 1).toFixed(2)))} style={{
@@ -203,51 +326,75 @@ function Calculator() {
         </div>
       </div>
 
-      {/* Breakdown */}
+      {/* Equity Breakdown */}
       <Section title="Equity Breakdown" icon="📊">
-        <Row label={`Options (${d.options.toLocaleString()} × $${d.strike})`} gross={optGross} tax={optTaxST} color="var(--blue)" />
-        <Row label={`Common Stock (${d.common.toLocaleString()} shares)`} gross={comGross} tax={comTax} color="var(--purple)" />
-        <Row label={`RSUs (${d.rsus.toLocaleString()} shares)`} gross={rsuGross} tax={rsuTax} color="var(--orange)" />
+        <BreakdownRow label={`Options (${d.options.toLocaleString()} × $${d.strike})`} grossLT={optGrossLT} grossST={optGrossST} taxLT={optTaxLT} taxST={optTaxST} color="var(--blue)" />
+        <BreakdownRow label={`Common Stock (${d.common.toLocaleString()} shares)`} grossLT={comGrossLT} grossST={comGrossST} taxLT={comTaxLT} taxST={comTaxST} color="var(--purple)" />
+        <BreakdownRow label={`RSUs (${d.rsus.toLocaleString()} shares)`} grossLT={rsuGrossLT} grossST={rsuGrossST} taxLT={rsuTaxLT} taxST={rsuTaxST} color="var(--orange)" />
       </Section>
 
       <div style={{ height:12 }} />
 
-      {/* Tax */}
+      {/* LTCG Conversion Sliders */}
+      {sliderTooltip && <SliderTooltip text={sliderTooltip} onClose={() => setSliderTooltip(null)} />}
+      {showLtcgInfo && <LTCGInfoModal onClose={() => setShowLtcgInfo(false)} savings={ltcgSavings} />}
+      <Section title="LTCG Conversion" icon="📈" extra={
+        <button onClick={() => setShowLtcgInfo(true)} style={{
+          background:'var(--border)', border:'none', borderRadius:'50%', width:26, height:26,
+          fontSize:14, cursor:'pointer', color:'var(--text)', display:'flex',
+          alignItems:'center', justifyContent:'center', fontWeight:700
+        }}>ⓘ</button>
+      }>
+        <LtcgSlider
+          label="Options to convert to LTCG"
+          value={ltcgOptions} setValue={setLtcgOptions} max={d.options}
+          info="To get LTCG on options, you must exercise them and hold the shares for >1 year before selling. During that time, the spread at exercise is still taxed as ordinary income, but any additional gain after exercise becomes LTCG. The slider models how many options you'd exercise early and hold >1yr."
+        />
+        <LtcgSlider
+          label="Common shares at LTCG rate"
+          value={ltcgCommon} setValue={setLtcgCommon} max={d.common}
+          info="Your common stock is already exercised and held >1 year, so it qualifies for LTCG (37.1%). Moving the slider down models selling some shares within 1 year of a future event (short-term)."
+        />
+        <LtcgSlider
+          label="RSUs to convert to LTCG"
+          value={ltcgRSUs} setValue={setLtcgRSUs} max={d.rsus}
+          info="RSUs are taxed as ordinary income when they vest — you can't avoid this. However, if you HOLD the shares after vesting for >1 year, any additional gain above the vest price becomes LTCG. This slider models the portion where you'd hold post-vest."
+        />
+        {ltcgSavings > 0 && (
+          <div style={{ padding:'10px 14px', background:'rgba(0,230,118,0.08)', borderRadius:10, border:'1px solid rgba(0,230,118,0.2)', marginTop:4 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:'var(--green)' }}>
+              💰 LTCG saves you {fmt(ltcgSavings)} in taxes (15.55% on {fmt(optGrossLT + comGrossLT + rsuGrossLT)})
+            </div>
+          </div>
+        )}
+      </Section>
+
+      <div style={{ height:12 }} />
+
+      {/* Tax Summary */}
       {showInfo && <TaxInfoModal onClose={() => setShowInfo(false)} />}
       <div style={{ position:'relative' }}>
-      <Section title="Tax Summary (California 2026)" icon="🏛️">
+      <Section title="Tax Summary (California 2026)" icon="🏛️" extra={
         <button onClick={() => setShowInfo(true)} style={{
-          position:'absolute', top:14, right:16, background:'var(--border)', border:'none',
-          borderRadius:'50%', width:26, height:26, fontSize:14, cursor:'pointer', color:'var(--text)',
-          display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700
+          background:'var(--border)', border:'none', borderRadius:'50%', width:26, height:26,
+          fontSize:14, cursor:'pointer', color:'var(--text)', display:'flex',
+          alignItems:'center', justifyContent:'center', fontWeight:700
         }}>ⓘ</button>
-        <TaxRow label="Options / RSUs (short-term)" rates={TAX.shortTerm} />
-        <TaxRow label="Common / Options held >1yr (LTCG)" rates={TAX.longTerm} />
+      }>
+        <TaxRow label="Short-term (ordinary income)" rates={TAX.shortTerm} />
+        <TaxRow label="Long-term (capital gains)" rates={TAX.longTerm} />
         <div style={{ borderTop:'1px solid var(--border)', marginTop:12, paddingTop:12 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-            <span style={{ fontWeight:600 }}>Scenario: Options as Short-Term</span>
-          </div>
           <div style={{ display:'flex', justifyContent:'space-between', fontSize:14 }}>
             <span style={{ color:'var(--text-dim)' }}>Gross</span><span>{fmt(totalGross)}</span>
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', fontSize:14 }}>
-            <span style={{ color:'var(--red)' }}>Est. Tax</span><span style={{ color:'var(--red)' }}>−{fmt(totalTaxST)}</span>
+            <span style={{ color:'var(--red)' }}>Est. Tax</span><span style={{ color:'var(--red)' }}>−{fmt(totalTax)}</span>
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', fontSize:18, fontWeight:700, marginTop:4, paddingTop:8, borderTop:'1px solid var(--border)' }}>
-            <span style={{ color:'var(--green)' }}>Net</span><span style={{ color:'var(--green)' }}>{fmt(totalGross - totalTaxST)}</span>
+            <span style={{ color:'var(--green)' }}>Net</span><span style={{ color:'var(--green)' }}>{fmt(totalGross - totalTax)}</span>
           </div>
-
-          <div style={{ display:'flex', justifyContent:'space-between', marginTop:16, marginBottom:4 }}>
-            <span style={{ fontWeight:600 }}>Scenario: Options as Long-Term</span>
-          </div>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:14 }}>
-            <span style={{ color:'var(--text-dim)' }}>Gross</span><span>{fmt(totalGross)}</span>
-          </div>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:14 }}>
-            <span style={{ color:'var(--red)' }}>Est. Tax</span><span style={{ color:'var(--red)' }}>−{fmt(totalTaxLT)}</span>
-          </div>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:18, fontWeight:700, marginTop:4, paddingTop:8, borderTop:'1px solid var(--border)' }}>
-            <span style={{ color:'var(--green)' }}>Net</span><span style={{ color:'var(--green)' }}>{fmt(totalGross - totalTaxLT)}</span>
+          <div style={{ fontSize:12, color:'var(--text-dim)', marginTop:8, textAlign:'center' }}>
+            Effective rate: {totalGross > 0 ? (totalTax / totalGross * 100).toFixed(1) : '0.0'}%
           </div>
         </div>
       </Section>
