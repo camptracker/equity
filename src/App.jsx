@@ -403,7 +403,7 @@ function Calculator() {
       <div style={{ height:12 }} />
 
       {/* Dynamic Advice */}
-      <DynamicAdvice price={price} optGross={optGross} comGross={comGross} rsuGross={rsuGross} totalGross={totalGross} totalTaxST={totalTaxST} />
+      <DynamicAdvice price={price} optGross={optGross} comGross={comGross} rsuGross={rsuGross} totalGross={totalGross} totalTaxST={totalTax} />
 
       <div style={{ textAlign:'center', fontSize:11, color:'var(--text-dim)', marginTop:16, opacity:0.5 }}>
         Estimates only. Consult a tax professional.
